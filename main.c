@@ -116,7 +116,9 @@ void INITIALIZE_CUBE(){
 	CLKPR = 0;
 	
 	for (int i =0; i<64; i++) {
-		CUBE[i].level = (i == 8) ? 15 : 0;
+		//CUBE[i].level = (i%5 == 0) ? 15 : 0;		//For testing
+		CUBE[i].level = 0;
+		//CUBE[i].level = (i == 8) ? 15 : 0;		//For testing
 		CUBE[i].anode = init[i*2];			//cathode and anode pin defined in header file
 		CUBE[i].cathode = init[i*2+1];
 		if(i != 63){
@@ -247,6 +249,7 @@ int main (){
 			DDRD = 0;
 			DDRC = 0;
 			currentLED = currentLED->next;
+			blankPixelCount = 0;
 			while (currentLED->level == 0){
 				currentLED = currentLED->next;
 				
@@ -254,7 +257,6 @@ int main (){
 				if (blankPixelCount > 63){
 					DISABLE_TIMER0_COMPARE_A();
 					DISABLE_TIMER0_COMPARE_B();
-					blankPixelCount = 0;
 					PORTD = 0;
 					PORTC = 0;
 					DDRD  = 0b11111;
@@ -262,31 +264,26 @@ int main (){
 					break;
 				}
 			}
-			nextPixel = 0;
 			
-			anode = 1<<(currentLED->anode - 1);
-			cathode = 1<<(currentLED->cathode - 1);
-			PORTD = anode & 0b11111;
-			PORTC = (anode>>5) & 0b1111;
-			inOut = anode | cathode;
-			DDRD = inOut & 0b11111;
-			DDRC = (inOut>>5) & 0b1111;
-			currentTime = GET_TIMER1_VALUE();
-			SET_TIMER1_OUTPUT_COMPARE_B(0xffff & (currentTime + ((currentLED->level)+1)*PIXEL_TIME / 16 ));
-			SET_TIMER1_OUTPUT_COMPARE_A(0xffff & (currentTime + PIXEL_TIME - 1));
+			if(blankPixelCount<64){
+				anode = 1<<(currentLED->anode - 1);
+				cathode = 1<<(currentLED->cathode - 1);
+				PORTD = anode & 0b11111;
+				PORTC = (anode>>5) & 0b1111;
+				inOut = anode | cathode;
+				DDRD = inOut & 0b11111;
+				DDRC = (inOut>>5) & 0b1111;
+				currentTime = GET_TIMER1_VALUE();
+				SET_TIMER1_OUTPUT_COMPARE_B(0xffff & (currentTime + ((currentLED->level)+1)*PIXEL_TIME / 16 ));
+				SET_TIMER1_OUTPUT_COMPARE_A(0xffff & (currentTime + PIXEL_TIME - 1));
+			}
+			
+		nextPixel = 0;
 		}
 		
 		if (overflowCounter > FRAME_TIME){
-			CUBE[8].level = (CUBE[8].level == 0) ? 15 : 0;
+			//CUBE[8].level = (CUBE[8].level == 0) ? 15 : 0;		//For testing
 			overflowCounter = 0;
-			//LEFT_SHIFT();
-			//ENABLE_TIMER1_COMPARE_A();
-			//ENABLE_TIMER1_COMPARE_B();
-			//if(CUBE[3].level != 0){
-				//for (int i=0 ; i<64 ; i=i+4){
-					//CUBE[3].level = 15;
-				//}
-			//}
 		}
 	}
 }
@@ -308,3 +305,11 @@ int main (){
 	 overflowCounter = 0;
  }
  */
+			//LEFT_SHIFT();
+			//ENABLE_TIMER1_COMPARE_A();
+			//ENABLE_TIMER1_COMPARE_B();
+			//if(CUBE[3].level != 0){
+				//for (int i=0 ; i<64 ; i=i+4){
+					//CUBE[3].level = 15;
+				//}
+			//}
