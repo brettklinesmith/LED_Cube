@@ -32,12 +32,12 @@ pin1	pin2	pin3	pin4	pin5
 #define FRAME_TIME 28			//number of timer1 overflows per frame
 
 // inline macros from animations
-#define _LEFTSHIFT(A) CUBE[A+1].level = CUBE[A].level;
-#define _RIGHTSHIFT(A) CUBE[A-1].level = CUBE[A].level;
-#define _UPSHIFT(A) CUBE[A+16].level = CUBE[A].level;
-#define _DOWNSHIFT(A) CUBE[A-16].level = CUBE[A].level;
-#define _FORWARDSHIFT(A) CUBE[A-4].level = CUBE[A].level;
-#define _BACKSHIFT(A) CUBE[A+4].level = CUBE[A].level;
+#define _LEFTSHIFT(A)  		CUBE[A+1].level  = CUBE[A].level;
+#define _RIGHTSHIFT(A) 		CUBE[A-1].level  = CUBE[A].level;
+#define _UPSHIFT(A)    		CUBE[A+16].level = CUBE[A].level;
+#define _DOWNSHIFT(A) 		CUBE[A-16].level = CUBE[A].level;
+#define _FORWARDSHIFT(A) 	CUBE[A-4].level  = CUBE[A].level;
+#define _BACKSHIFT(A) 		CUBE[A+4].level  = CUBE[A].level;
 
 /***************************** DEFINE STRUCTURE  *****************************/
 
