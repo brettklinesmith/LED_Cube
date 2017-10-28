@@ -28,9 +28,10 @@ pin1	pin2	pin3	pin4	pin5
 
 /****************************** DECLARE MACROS  ******************************/
 
-#define PIXEL_TIME 2048	//pixel time in program cycles
-#define FRAME_TIME 28	//number of timer1 overflows per frame
+#define PIXEL_TIME 2048		//pixel max ON time in instruction cycles
+#define FRAME_TIME 28			//number of timer1 overflows per frame
 
+// inline macros from animations
 #define _LEFTSHIFT(A) CUBE[A+1].level = CUBE[A].level;
 #define _RIGHTSHIFT(A) CUBE[A-1].level = CUBE[A].level;
 #define _UPSHIFT(A) CUBE[A+16].level = CUBE[A].level;
@@ -41,8 +42,7 @@ pin1	pin2	pin3	pin4	pin5
 /***************************** DEFINE STRUCTURE  *****************************/
 
 /***************************** struct _LED  *****************************
-* Function to initialize the cube. Will dedicate memory and define      *
-* pointers to enable the cascade of LEDs                                *
+* Container to define a single LED.                              	      *
 * Parameters:                                                           *
 *     int level						intensity of led: 0-15 (4 bits)						  	*
 *     int anode						pin number of anode: 0-9 (4 bits)							*
@@ -58,52 +58,46 @@ struct _LED {
 
 /************************* DECLARE GLOBAL VARIABLES  *************************/
 
-struct _LED CUBE[64];			//array of _LEDs to define cube
+struct _LED CUBE[64];			             	//array of _LEDs to define cube
 
-struct _LED *currentLED;	//pointer to current LED
+struct _LED *currentLED;	             	//pointer to current LED
 
-//volatile uint8_t pointIndex = 0;
-volatile char nextPixel = 0;  //ISR helpers
-volatile char overflowCounter = 0, frameCounter = 0;
+//ISR helpers
+volatile char nextPixel = 0;           	//move to next LED (functionally a bool)         
+volatile char overflowCounter = 0;			//number of overflows since last reset
+volatile char frameCounter = 0;					//frame counter for current animation
 
 /********************* DEFINE INTERRUPT SERVICE ROUTINES *********************/
 
 /************************** TIMER1_COMPA_vect  **************************
-* TIMER1 Output Compare A Match Interrupt Enable                        *
-* Parameters:                                                           *
-*		                                                                    *
+* TIMER1 Output Compare A Match Interrupt. Should trigger every 				*
+* PIXEL_TIME timer counts change currentLED point to next LED.					*
 ************************************************************************/
 ISR(TIMER1_COMPA_vect)
 {
-	nextPixel = 1;
+	nextPixel = 1;												//indicate ISR was triggered
 }
 
 /************************** TIMER1_COMPB_vect  **************************
-* TIMER1 Output Compare B Match Interrupt Enable                        *
-* Parameters:                                                           *
-*		                                                                    *
+* TIMER1 Output Compare B Match Interrupt. Should trigger after					*
+* intensity based amount of time to allow for 4-bit dimming. Just turns *
+* all outputs off and assumes the details will be handled by next LED. 	*
 ************************************************************************/
 ISR(TIMER1_COMPB_vect)
 {
-	PORTD = 0;
-	PORTC = 0;
+	PORTD = 0;														//pins 1-5 off
+	PORTC = 0;														//pins 6-9 off
 }
 
-//////////////////////////////////////////////////////////////////////////
-// TODO: handle interrupt A and B occur simultaneously
-//////////////////////////////////////////////////////////////////////////
-
 /*************************** TIMER1_OVF_vect  ***************************
-* TIMER1 overflow interrupt service routine                             *
-* Parameters:                                                           *
-*		                                                                    *
+* TIMER1 overflow interrupt. Incriments counter to keep track of        *
+* overflows for animation timing purposes.															*
+* Might move to bool type behaviour and handle animation dwell time     *
+* seperately in each animation. Should probably do that...							*
 ************************************************************************/
 ISR(TIMER1_OVF_vect)
 {
 	overflowCounter++;
-	//CUBE[pointIndex].level = 0;
-	//pointIndex = (pointIndex<63) ? pointIndex+1 : 0;
-	//CUBE[pointIndex].level = 15;
 }
 
 
@@ -112,19 +106,18 @@ void INITIALIZE_CUBE();
 
 /*************************** INITIALIZE_CUBE  ***************************
 * Function to initialize the cube. Will dedicate memory and define      *
-* pointers to enable the cascade of LEDs                                *
-* Parameters:                                                           *
-*		                                                                    *
+* pointers to enable the cascade of LED animations.                     *
 ************************************************************************/
 void INITIALIZE_CUBE(){
-	CLKPR = _BV(CLKPCE);
-	CLKPR = 0;
+	CLKPR = _BV(CLKPCE);			//allow writing to set system clock prescaler
+	CLKPR = 0;								//set system clock prescaler to 1
 	
 	for (int i =0; i<64; i++) {
 		//CUBE[i].level = (i%3 == 0) ? 15 : 0;		//For testing
 		CUBE[i].level = 0;
-		//CUBE[i].level = (i == 8) ? 15 : 0;		//For testing
-		CUBE[i].anode = init[i*2];			//cathode and anode pin defined in header file
+		
+		// init contains cathode and anode pin information and is defined in header file
+		CUBE[i].anode = init[i*2];			
 		CUBE[i].cathode = init[i*2+1];
 		if(i != 63){
 			CUBE[i].next = &CUBE[i+1];
@@ -132,7 +125,8 @@ void INITIALIZE_CUBE(){
 			CUBE[i].next = &CUBE[0];
 		}
 	}
-	currentLED = &CUBE[0];
+	
+	currentLED = &CUBE[0];							//after loop point to first LED
 }			
 
 /******************** DEFINE ANIMATION HELPER FUNCTIONS **********************/
@@ -148,11 +142,14 @@ void DOWN_SHIFT();
 void FORWARD_SHIFT();
 void BACK_SHIFT();
 
-void LEFT_TWIST();
-void RIGHT_TWIST();
+void LEFT_ROTATE();
+void RIGHT_ROTATE();
 
 /******************************** LED_ON ********************************
 * Function to turn a single LED on at a given intensity.								*
+* Parameters:                                                           *
+*     int LEDNum						the LED number in the CUBE array (0-63)	  	*
+*     int brightness				the intensity of the LED (0-15)							*
 ************************************************************************/
 void LED_ON(int LEDNum,int brightness){
 	CUBE[LEDNum].level = brightness;
@@ -160,6 +157,8 @@ void LED_ON(int LEDNum,int brightness){
 
 /******************************* LED_OFF  *******************************
 * Function to turn a single LED off.																		*
+* Parameters:                                                           *
+*     int LEDNum						the LED number in the CUBE array (0-63)	  	*
 ************************************************************************/
 void LED_OFF(int LEDNum){
 	CUBE[LEDNum].level = 0;
@@ -167,6 +166,8 @@ void LED_OFF(int LEDNum){
 
 /******************************** ALL_ON ********************************
 * Function to turn all of the LEDs on at a given intensity.							*
+* Parameters:                                                           *
+*     int brightness				the intensity of the LEDs (0-15)						*
 ************************************************************************/
 void ALL_ON(int brightness){
 	CUBE[0].level = brightness;
@@ -613,7 +614,7 @@ void DOWN_SHIFT(){
 }
 
 /**************************** FORWARD_SHIFT  ****************************
-* Function to shift current frame forward one pixel leaving the bottom	*
+* Function to shift current frame forward one pixel leaving the rear		*
 * most plane blank.																											*
 ************************************************************************/
 void FORWARD_SHIFT(){
@@ -690,7 +691,7 @@ void FORWARD_SHIFT(){
 }
 
 /****************************** BACK_SHIFT ******************************
-* Function to shift current frame back one pixel leaving the top most 	*
+* Function to shift current frame back one pixel leaving the front most	*
 * plane blank.																													*
 ************************************************************************/
 void BACK_SHIFT(){
@@ -982,49 +983,47 @@ void DRAW_X(int offsetPlane,int brightness){
 
 /******************************** MAIN FUNCTION ******************************/
 
-/****************************** ASSIGN_PIN ******************************
-* Function to assign state of a pin.                                    *
-* Parameters:                                                           *
-*		ledPin: The pin number to be changed, refer to pin assignments at   *
-*						top of page                                                 *
-*    value:	Indicated the state to change the given pin to              *
-*            0  - pin is an output LOW (0V)                             *
-*            1  - pin is an output HIGH (5V)                            *
-*            99 - pin in an input (HIGH-Z)                              *
-************************************************************************/
 int main (){
 	uint16_t anode,cathode,inOut;		//pixel select helpers
-	uint16_t currentTime;						//Current time for compare ISR setting
-	uint16_t blankPixelCount = 0;		//Current time for compare ISR setting
+	uint16_t currentTime;						//current time for compare ISR setting
+	// Try char blankPixelCount
+	uint16_t blankPixelCount = 0;		//number of consecutive LEDs that are off
 	
 	INITIALIZE_CUBE();
 	
-	//initialize timer1
+	// Initialize timer1
 	SET_TIMER1_PRESCALER(1);
 	ENABLE_TIMER1_COMPARE_A();
 	ENABLE_TIMER1_COMPARE_B();
 	ENABLE_TIMER1_OVERFLOW();
 	SET_TIMER1_VALUE(0);
 	
-	sei();											// global interrupt enable
+	sei();													//global interrupt enable
 	
+	// Give timer compare A a value so it will trigger
 	SET_TIMER1_OUTPUT_COMPARE_A(PIXEL_TIME);
 	
-	
+	// Main loop
 	while(1)
 	{
-		if (nextPixel > 0){
-			DDRD = 0;
-			DDRC = 0;
-			currentLED = currentLED->next;
-			blankPixelCount = 0;
-			while (currentLED->level == 0){
-				currentLED = currentLED->next;
+		if (nextPixel > 0){  								//if it's time to move to next LED
+			DDRD = 0;													//turn off pins 1-5
+			DDRC = 0;													//turn off pins 6-9
+			currentLED = currentLED->next;		//direct pointer to next LED address
+			blankPixelCount = 0;							//reset the number of LEDs that are off
+			
+			// Step throught each LED in the cube looking for one where level > 0
+			while (currentLED->level == 0){		
+				currentLED = currentLED->next;	//if current LED is off move to next one
 				
-				blankPixelCount++;
+				blankPixelCount++;							//increment number of LED that are off
+				
+				// If all 64 LEDs are currently off disable compare ISRs until next frame
 				if (blankPixelCount > 63){
 					DISABLE_TIMER0_COMPARE_A();
 					DISABLE_TIMER0_COMPARE_B();
+					
+					// Turning everything off again like this shouldn't be necessary
 					PORTD = 0;
 					PORTC = 0;
 					DDRD  = 0b11111;
@@ -1033,25 +1032,43 @@ int main (){
 				}
 			}
 			
+			// Try (currentLED->level > 0)
 			if(blankPixelCount<64){
-				anode = 1<<(currentLED->anode - 1);
-				cathode = 1<<(currentLED->cathode - 1);
+				// Set anode and cathode pins as outputs, all others as inputs (high-Z)
+				anode = 1<<(currentLED->anode - 1);					//place a 1 for the anode pin
+				cathode = 1<<(currentLED->cathode - 1);			//place a 1 for the cathode pin
+				inOut = anode | cathode;										//or anode and cathode 1s together
+				DDRD = inOut & 0b11111;											//set pins 1-5 to appropriate I/O state
+				DDRC = (inOut>>5) & 0b1111;									//set pins 6-9 to appropriate I/O state
+				
+				// Set anode pin to output HIGH and all other pins (including cathode) to LOW
+				// High-Z pins are uneffected by this assignment
 				PORTD = anode & 0b11111;
 				PORTC = (anode>>5) & 0b1111;
-				inOut = anode | cathode;
-				DDRD = inOut & 0b11111;
-				DDRC = (inOut>>5) & 0b1111;
+				
+				/*set ISR routines compare values*/
 				currentTime = GET_TIMER1_VALUE();
+
+				/////////////////////////////////////////////////////////////////////////
+				// TODO: try (level)/16) so COMP_B triggers always
+				/////////////////////////////////////////////////////////////////////////
+				
+				// Turn off current LED at time of (current time + PIXEL_TIME * ratio of (level+1)/16).
+				// Integer divide could cause very small timing error. No intensity of 1 possible only 2-16
 				SET_TIMER1_OUTPUT_COMPARE_B(0xffff & (currentTime + ((currentLED->level)+1)*PIXEL_TIME / 16 ));
+				
+				// Change to next LED after PIXEL_TIME
+				// Try removing - 1
 				SET_TIMER1_OUTPUT_COMPARE_A(0xffff & (currentTime + PIXEL_TIME - 1));
 			}
 			
-			nextPixel = 0;
+			nextPixel = 0;																	//reset bool behaviour to wait for ISR
 		}
 		
+		// When the frame is done being displayed
 		if (overflowCounter == FRAME_TIME){
-			overflowCounter = 0;
-			frameCounter++;
+			overflowCounter = 0;														//reset overflow counter
+			frameCounter++;																	//set index to next frame
 			//SHIFT_TEST(frameCounter);
 			//FADE_TEST(frameCounter);
 			DRAW_X(0,15);
