@@ -23,6 +23,7 @@ pin1	pin2	pin3	pin4	pin5
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include "cube_init.h"
+#include "animation_functions.h"
 #include "AVRTimer.h"
 
 /****************************** DECLARE MACROS  ******************************/
