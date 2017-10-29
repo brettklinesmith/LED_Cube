@@ -15,6 +15,8 @@
 #include "cube_init.h"
 
 /****************************** DECLARE MACROS  ******************************/
+#define ANIMATION_TIME 1000					//time base for number of overflows per animation sequence
+
 // inline macros from animations
 #define _LEFTSHIFT(A)  		CUBE[A+1].level  = CUBE[A].level;
 #define _RIGHTSHIFT(A) 		CUBE[A-1].level  = CUBE[A].level;
@@ -25,6 +27,7 @@
 
 /************************* DECLARE GLOBAL VARIABLES  *************************/
 extern struct _LED CUBE[64];				//array of _LEDs in cube, defined in main.c
+extern int currentAnimTime;
 
 /******************** DEFINE ANIMATION HELPER FUNCTIONS **********************/
 void LED_ON();
@@ -663,3 +666,331 @@ void BACK_SHIFT(){
 	CUBE[50].level = 0;
 	CUBE[51].level = 0;
 }
+
+
+/*********************** DEFINE ANIMATIONS FUNCTIONS *************************/
+void SHIFT_TEST();
+void FADE_TEST();
+void DRAW_X();
+void LINE_RIDER();
+
+void SHIFT_TEST(int frameNum){
+	switch(frameNum){
+		case 0:
+		ALL_ON(15);
+		currentAnimTime = ANIMATION_TIME;
+		break;
+		case 1:
+		LEFT_SHIFT();
+		break;
+		case 2:
+		LEFT_SHIFT();
+		break;
+		case 3:
+		LEFT_SHIFT();
+		break;
+		case 4:
+		LEFT_SHIFT();
+		break;
+		case 5:
+		ALL_ON(15);
+		break;
+		case 6:
+		RIGHT_SHIFT();
+		break;
+		case 7:
+		RIGHT_SHIFT();
+		break;
+		case 8:
+		RIGHT_SHIFT();
+		break;
+		case 9:
+		RIGHT_SHIFT();
+		break;
+		case 10:
+		ALL_ON(15);
+		break;
+		case 11:
+		UP_SHIFT();
+		break;
+		case 12:
+		UP_SHIFT();
+		break;
+		case 13:
+		UP_SHIFT();
+		break;
+		case 14:
+		UP_SHIFT();
+		break;
+		case 15:
+		ALL_ON(15);
+		break;
+		case 16:
+		DOWN_SHIFT();
+		break;
+		case 17:
+		DOWN_SHIFT();
+		break;
+		case 18:
+		DOWN_SHIFT();
+		break;
+		case 19:
+		DOWN_SHIFT();
+		break;
+		case 20:
+		ALL_ON(15);
+		break;
+		case 21:
+		FORWARD_SHIFT();
+		break;
+		case 22:
+		FORWARD_SHIFT();
+		break;
+		case 23:
+		FORWARD_SHIFT();
+		break;
+		case 24:
+		FORWARD_SHIFT();
+		break;
+		case 25:
+		ALL_ON(15);
+		break;
+		case 26:
+		BACK_SHIFT();
+		break;
+		case 27:
+		BACK_SHIFT();
+		break;
+		case 28:
+		BACK_SHIFT();
+		break;
+		case 29:
+		BACK_SHIFT();
+		break;
+		default:
+		ALL_ON(15);
+		break;
+	}
+}
+
+void FADE_TEST(int frameNum){
+	switch(frameNum){
+		case 0:
+		ALL_OFF();
+		currentAnimTime = ANIMATION_TIME *2;
+		break;
+		case 1:
+		ALL_ON(1);
+		break;
+		case 2:
+		ALL_ON(2);
+		break;
+		case 3:
+		ALL_ON(3);
+		break;
+		case 4:
+		ALL_ON(4);
+		break;
+		case 5:
+		ALL_ON(5);
+		break;
+		case 6:
+		ALL_ON(6);
+		break;
+		case 7:
+		ALL_ON(7);
+		break;
+		case 8:
+		ALL_ON(8);
+		break;
+		case 9:
+		ALL_ON(9);
+		break;
+		case 10:
+		ALL_ON(10);
+		break;
+		case 11:
+		ALL_ON(11);
+		break;
+		case 12:
+		ALL_ON(12);
+		break;
+		case 13:
+		ALL_ON(13);
+		break;
+		case 14:
+		ALL_ON(14);
+		break;
+		case 15:
+		ALL_ON(15);
+		break;
+		case 16:
+		ALL_ON(14);
+		break;
+		case 17:
+		ALL_ON(13);
+		break;
+		case 18:
+		ALL_ON(12);
+		break;
+		case 19:
+		ALL_ON(11);
+		break;
+		case 20:
+		ALL_ON(10);
+		break;
+		case 21:
+		ALL_ON(9);
+		break;
+		case 22:
+		ALL_ON(8);
+		break;
+		case 23:
+		ALL_ON(7);
+		break;
+		case 24:
+		ALL_ON(6);
+		break;
+		case 25:
+		ALL_ON(5);
+		break;
+		case 26:
+		ALL_ON(4);
+		break;
+		case 27:
+		ALL_ON(3);
+		break;
+		case 28:
+		ALL_ON(2);
+		break;
+		case 29:
+		ALL_ON(1);
+		break;
+		default:
+		ALL_OFF();
+		break;
+	}
+}
+
+void DRAW_X(int offsetPlane,int brightness){
+	currentAnimTime = ANIMATION_TIME / 2;
+	
+	LED_ON(0+(4*offsetPlane),brightness);
+	LED_ON(3+(4*offsetPlane),brightness);
+	LED_ON(17+(4*offsetPlane),brightness);
+	LED_ON(18+(4*offsetPlane),brightness);
+	LED_ON(33+(4*offsetPlane),brightness);
+	LED_ON(34+(4*offsetPlane),brightness);
+	LED_ON(48+(4*offsetPlane),brightness);
+	LED_ON(51+(4*offsetPlane),brightness);
+}
+
+void LINE_RIDER(int frameNum){
+	switch(frameNum){
+		case 0:
+		LED_ON(0,15);
+		currentAnimTime = ANIMATION_TIME / 2;
+		break;
+		case 1 ... 3:
+		LEFT_SHIFT();
+		break;
+		case 4 ... 6:
+		BACK_SHIFT();
+		break;
+		case 7 ... 9:
+		RIGHT_SHIFT();
+		break;
+		case 10 ... 12:
+		FORWARD_SHIFT();
+		break;
+		case 13 ... 15:
+		UP_SHIFT();
+		break;
+		case 16 ... 18:
+		LEFT_SHIFT();
+		break;
+		case 19 ... 21:
+		DOWN_SHIFT();
+		break;
+		case 22 ... 24:
+		RIGHT_SHIFT();
+		break;
+		case 25 ... 27:
+		UP_SHIFT();
+		break;
+		case 28 ... 30:
+		BACK_SHIFT();
+		break;
+		case 31 ... 33:
+		LEFT_SHIFT();
+		break;
+		case 34 ... 36:
+		FORWARD_SHIFT();
+		break;
+		case 37 ... 39:
+		DOWN_SHIFT();
+		break;
+		case 40 ... 42:
+		BACK_SHIFT();
+		break;
+		case 43 ... 45:
+		UP_SHIFT();
+		break;
+		case 46 ... 48:
+		FORWARD_SHIFT();
+		break;
+		case 49 ... 51:
+		DOWN_SHIFT();
+		break;
+		case 52 ... 54:
+		BACK_SHIFT();
+		break;
+		case 55 ... 57:
+		UP_SHIFT();
+		break;
+		case 58 ... 60:
+		RIGHT_SHIFT();
+		break;
+		case 61 ... 63:
+		DOWN_SHIFT();
+		break;
+		case 64 ... 66:
+		FORWARD_SHIFT();
+		break;
+		case 67 ... 69:
+		UP_SHIFT();
+		break;
+		case 70 ... 72:
+		BACK_SHIFT();
+		break;
+		case 73 ... 75:
+		LEFT_SHIFT();
+		break;
+		case 76 ... 78:
+		DOWN_SHIFT();
+		break;
+		case 79 ... 81:
+		RIGHT_SHIFT();
+		break;
+		case 82 ... 84:
+		FORWARD_SHIFT();
+		break;
+		case 85 ... 87:
+		LEFT_SHIFT();
+		break;
+		case 88 ... 90:
+		BACK_SHIFT();
+		break;
+		case 91 ... 93:
+		RIGHT_SHIFT();
+		break;
+		case 94 ... 96:
+		FORWARD_SHIFT();
+		break;
+		default:
+		ALL_OFF();
+		break;
+	}
+}
+
+#endif
