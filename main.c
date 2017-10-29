@@ -30,16 +30,20 @@ pin1	pin2	pin3	pin4	pin5
 
 #define PIXEL_TIME 2048							//pixel max ON time in instruction cycles
 #define FRAME_TIME 28								//number of timer1 overflows per frame
+#define ANIMATION_TIME 750					//time base for number of overflows per animation sequence
+#define NUM_OF_ANIMATIONS 4					//number of animation sequences
 
 /************************* DECLARE GLOBAL VARIABLES  *************************/
 
 struct	 _LED CUBE[64];			        //array of _LEDs to define cube
 struct 	 _LED *currentLED;	        //pointer to current LED
 
+int 			currentAnimTime;					//current animation sequence running time
+
 //ISR helpers
-volatile char nextPixel 			= 0;  //move to next LED (functionally a bool)         
-volatile char overflowCounter = 0;	//number of overflows since last reset
-volatile char frameCounter 		= 0;	//frame counter for current animation
+volatile char nextPixel 			= 0;  //move to next LED (functionally a bool)
+volatile char frameStep 			= 0;  //count animation frame (functionally a bool)
+volatile int frameCounter 		= 0;	//frame counter for current animation
 
 /********************* DEFINE INTERRUPT SERVICE ROUTINES *********************/
 
@@ -64,14 +68,14 @@ ISR(TIMER1_COMPB_vect)
 }
 
 /*************************** TIMER1_OVF_vect  ***************************
-* TIMER1 overflow interrupt. Incriments counter to keep track of        *
+* TIMER1 overflow interrupt. Increments counter to keep track of        *
 * overflows for animation timing purposes.															*
-* Might move to bool type behaviour and handle animation dwell time     *
-* seperately in each animation. Should probably do that...							*
+* Might move to bool type behavior and handle animation dwell time      *
+* separately in each animation. Should probably do that...							*
 ************************************************************************/
 ISR(TIMER1_OVF_vect)
 {
-	overflowCounter++;
+	frameStep = 1;
 }
 
 
@@ -90,7 +94,7 @@ void INITIALIZE_CUBE(){
 		CUBE[i].level = 0;
 		
 		// init contains cathode and anode pin information and is defined in header file
-		CUBE[i].anode = init[i*2];			
+		CUBE[i].anode = init[i*2];
 		CUBE[i].cathode = init[i*2+1];
 		
 		if(i != 63){
@@ -101,15 +105,20 @@ void INITIALIZE_CUBE(){
 	}
 	
 	currentLED = &CUBE[0];						//after loop point to first LED
-}			
+}
 
 /*********************** DEFINE ANIMATIONS FUNCTIONS *************************/
 void SHIFT_TEST();
 void FADE_TEST();
 void DRAW_X();
+void LINE_RIDER();
 
 void SHIFT_TEST(int frameNum){
 	switch(frameNum){
+		case 0:
+			ALL_ON(15);
+			currentAnimTime = ANIMATION_TIME;
+			break;
 		case 1:
 			LEFT_SHIFT();
 			break;
@@ -123,7 +132,6 @@ void SHIFT_TEST(int frameNum){
 			LEFT_SHIFT();
 			break;
 		case 5:
-			//for (int i =0; i<64; i++) CUBE[i].level = (i%3 == 0) ? 15 : 0;		//For testing
 			ALL_ON(15);
 			break;
 		case 6:
@@ -139,7 +147,6 @@ void SHIFT_TEST(int frameNum){
 			RIGHT_SHIFT();
 			break;
 		case 10:
-			//for (int i =0; i<64; i++) CUBE[i].level = (i%3 == 0) ? 15 : 0;		//For testing
 			ALL_ON(15);
 			break;
 		case 11:
@@ -200,7 +207,6 @@ void SHIFT_TEST(int frameNum){
 			BACK_SHIFT();
 			break;
 		default:
-			frameCounter = 0;
 			ALL_ON(15);
 			break;
 	}
@@ -208,6 +214,10 @@ void SHIFT_TEST(int frameNum){
 
 void FADE_TEST(int frameNum){
 	switch(frameNum){
+		case 0:
+			ALL_OFF();
+			currentAnimTime = ANIMATION_TIME *2;
+			break;
 		case 1:
 			ALL_ON(1);
 			break;
@@ -296,13 +306,14 @@ void FADE_TEST(int frameNum){
 			ALL_ON(1);
 			break;
 		default:
-			frameCounter = 0;
 			ALL_OFF();
 			break;
 	}
 }
 
 void DRAW_X(int offsetPlane,int brightness){
+	currentAnimTime = ANIMATION_TIME / 2;
+	
 	LED_ON(0+(4*offsetPlane),brightness);
 	LED_ON(3+(4*offsetPlane),brightness);
 	LED_ON(17+(4*offsetPlane),brightness);
@@ -313,11 +324,120 @@ void DRAW_X(int offsetPlane,int brightness){
 	LED_ON(51+(4*offsetPlane),brightness);
 }
 
+void LINE_RIDER(int frameNum){
+	switch(frameNum){
+		case 0:
+			LED_ON(0,15);
+			currentAnimTime = ANIMATION_TIME / 2;
+			break;
+		case 1 ... 3:
+			LEFT_SHIFT();
+			break;
+		case 4 ... 6:
+			BACK_SHIFT();
+			break;
+		case 7 ... 9:
+			RIGHT_SHIFT();
+			break;
+		case 10 ... 12:
+			FORWARD_SHIFT();
+			break;
+		case 13 ... 15:
+			UP_SHIFT();
+			break;
+		case 16 ... 18:
+			LEFT_SHIFT();
+			break;
+		case 19 ... 21:
+			DOWN_SHIFT();
+			break;
+		case 22 ... 24:
+			RIGHT_SHIFT();
+			break;
+		case 25 ... 27:
+			UP_SHIFT();
+			break;
+		case 28 ... 30:
+			BACK_SHIFT();
+			break;
+		case 31 ... 33:
+			LEFT_SHIFT();
+			break;
+		case 34 ... 36:
+			FORWARD_SHIFT();
+			break;
+		case 37 ... 39:
+			DOWN_SHIFT();
+			break;
+		case 40 ... 42:
+			BACK_SHIFT();
+			break;
+		case 43 ... 45:
+			UP_SHIFT();
+			break;
+		case 46 ... 48:
+			FORWARD_SHIFT();
+			break;
+		case 49 ... 51:
+			DOWN_SHIFT();
+			break;
+		case 52 ... 54:
+			BACK_SHIFT();
+			break;
+		case 55 ... 57:
+			UP_SHIFT();
+			break;
+		case 58 ... 60:
+			RIGHT_SHIFT();
+			break;
+		case 61 ... 63:
+			DOWN_SHIFT();
+			break;
+		case 64 ... 66:
+			FORWARD_SHIFT();
+			break;
+		case 67 ... 69:
+			UP_SHIFT();
+			break;
+		case 70 ... 72:
+			BACK_SHIFT();
+			break;
+		case 73 ... 75:
+			LEFT_SHIFT();
+			break;
+		case 76 ... 78:
+			DOWN_SHIFT();
+			break;
+		case 79 ... 81:
+			RIGHT_SHIFT();
+			break;
+		case 82 ... 84:
+			FORWARD_SHIFT();
+			break;
+		case 85 ... 87:
+			LEFT_SHIFT();
+			break;
+		case 88 ... 90:
+			BACK_SHIFT();
+			break;
+		case 91 ... 93:
+			RIGHT_SHIFT();
+			break;
+		case 94 ... 96:
+			FORWARD_SHIFT();
+			break;
+		default:
+			ALL_OFF();
+			break;
+	}
+}
+
 /******************************** MAIN FUNCTION ******************************/
 
 int main (){
 	uint16_t 	anode,cathode,inOut;		//pixel select helpers
 	uint16_t 	currentTime;						//current time for compare ISR setting
+	uint16_t 	animationNum = 0;				//current animation sequence
 	char 			blankPixelCount = 0;		//number of consecutive LEDs that are off
 	
 	INITIALIZE_CUBE();
@@ -343,8 +463,8 @@ int main (){
 			currentLED = currentLED->next; //direct pointer to next LED address
 			blankPixelCount = 0;					//reset the number of LEDs that are off
 			
-			// Step throught each LED in the cube looking for one where level > 0
-			while (currentLED->level == 0){		
+			// Step thought each LED in the cube looking for one where level > 0
+			while (currentLED->level == 0){
 				currentLED = currentLED->next; //if current LED is off move to next one
 				
 				blankPixelCount++;					//increment number of LED that are off
@@ -353,18 +473,11 @@ int main (){
 				if (blankPixelCount > 63){
 					DISABLE_TIMER0_COMPARE_A();
 					DISABLE_TIMER0_COMPARE_B();
-					
-					// Turning everything off again try this shouldn't be necessary
-					PORTD = 0;
-					PORTC = 0;
-					DDRD  = 0b11111;
-					DDRC  = 0b1111;
 					break;
 				}
 			}
 			
-			// Try (currentLED->level > 0)
-			if(blankPixelCount<64){
+			if(currentLED->level > 0){
 				// Set anode and cathode pins as outputs, all others as inputs (high-Z)
 				anode = 1<<(currentLED->anode - 1);					//place a 1 for the anode pin
 				cathode = 1<<(currentLED->cathode - 1);			//place a 1 for the cathode pin
@@ -373,37 +486,56 @@ int main (){
 				DDRC = (inOut>>5) & 0b1111;									//set pins 6-9 to appropriate I/O state
 				
 				// Set anode pin to output HIGH and all other pins (including cathode) to LOW
-				// High-Z pins are uneffected by this assignment
+				// High-Z pins are unaffected by this assignment
 				PORTD = anode & 0b11111;
 				PORTC = (anode>>5) & 0b1111;
 				
 				/*set ISR routines compare values*/
 				currentTime = GET_TIMER1_VALUE();
-
-				/////////////////////////////////////////////////////////////////////////
-				// TODO: try (level)/16) so COMP_B triggers always
-				/////////////////////////////////////////////////////////////////////////
 				
-				// Turn off current LED at time of (current time + PIXEL_TIME * ratio of (level+1)/16).
-				// Integer divide could cause very small timing error. No intensity of 1 possible only 2-16
-				SET_TIMER1_OUTPUT_COMPARE_B(0xffff & (currentTime + ((currentLED->level)+1)*PIXEL_TIME / 16 ));
+				// Turn off current LED at time of (current time + PIXEL_TIME * ratio of (level)/16).
+				// Integer divide could cause very small timing error that isn't a concern.
+				// Intensity of 1 is not possible. 1-15 = 2-16
+				SET_TIMER1_OUTPUT_COMPARE_B(0xffff & (currentTime + ((currentLED->level))*PIXEL_TIME / 16 ));
 				
 				// Change to next LED after PIXEL_TIME
-				// Try removing - 1
-				SET_TIMER1_OUTPUT_COMPARE_A(0xffff & (currentTime + PIXEL_TIME - 1));
+				SET_TIMER1_OUTPUT_COMPARE_A(0xffff & (currentTime + PIXEL_TIME));
 			}
 			
-			nextPixel = 0;								//reset bool behaviour to wait for ISR
+			nextPixel = 0;								//reset bool behavior to wait for ISR
 		}
 		
 		// When the frame is done being displayed
-		if (overflowCounter == FRAME_TIME){
-			overflowCounter = 0;					//reset overflow counter
+		if (frameStep == 1){
+			switch(animationNum){
+				case 0:
+					LINE_RIDER(frameCounter%97);
+					break;
+				case 1:
+					if(frameCounter%20 == 0) FADE_TEST((frameCounter/20)%29);
+					break;
+				case 2:
+					if(frameCounter == 0) DRAW_X(0,15);
+					break;
+				case 3:
+					if(frameCounter%25 == 0) SHIFT_TEST((frameCounter/25)%30);
+					break;
+				default:
+					animationNum = 0;
+					break;
+			}
 			frameCounter++;								//set index to next frame
-			//SHIFT_TEST(frameCounter);
-			//FADE_TEST(frameCounter);
-			DRAW_X(0,15);
 			
+			if (frameCounter > currentAnimTime){
+				frameCounter = 0;
+				animationNum++;
+				if (animationNum > NUM_OF_ANIMATIONS){
+					animationNum = 0;
+				}
+				ALL_OFF();
+			}
+			
+			frameStep = 0;
 		}
 	}
 }
