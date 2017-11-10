@@ -993,4 +993,208 @@ void LINE_RIDER(int frameNum){
 	}
 }
 
+void SNAKE(int frameNum){
+	switch(frameNum){
+		case 0:
+      ALL_OFF();
+      currentAnimTime = ANIMATION_TIME * 2;
+      break;
+		case 1:
+      LED_ON(0,15);
+      LED_ON(16,15);
+      LED_ON(32,15);
+      LED_ON(50,15);
+      break;
+		case 2 ... 7:
+      break;
+		case 8:
+      LED_ON(48,15);
+      LED_OFF(0);
+      break;
+		case 9 ... 14:
+      break;
+		case 15:
+      LED_ON(49,15);
+      LED_OFF(16);
+      break;
+		case 16 ... 21:
+      break;
+		case 22:
+      LED_ON(29,15);
+      LED_OFF(32);
+      break;
+		case 23 ... 28:
+      break;
+		case 29:
+      LED_ON(54,15);
+      break;
+		case 30 ... 35:
+      break;
+		case 36:
+      LED_ON(58,15);
+      break;
+		case 37 ... 42:
+      break;
+		case 43:
+      LED_ON(62,15);
+      LED_OFF(48);
+      break;
+		case 44 ... 49:
+      break;
+		case 50:
+      LED_ON(46,15);
+      LED_OFF(49);
+      break;
+		case 51 ... 56:
+      break;
+		case 57:
+      LED_ON(30,15);
+      LED_OFF(50);
+      break;
+		case 58 ... 63:
+      break;
+		case 64:
+      LED_ON(4,15);
+      LED_OFF(54);
+      break;
+		case 65 ... 70:
+      break;
+		case 71:
+      LED_ON(13,15);
+      break;
+		case 72 ... 77:
+      break;
+		case 78:
+      LED_ON(12,15);
+      break;
+		case 79 ... 84:
+      break;
+		case 85:
+      LED_ON(8,15);
+      LED_OFF(58);
+      break;
+		case 86 ... 91:
+      break;
+		case 92:
+      LED_ON(63,15);
+      LED_OFF(62);
+      break;
+		case 93 ... 98:
+      break;
+		case 99:
+      LED_ON(20,15);
+      break;
+		case 100 ... 105:
+      break;
+		case 106:
+      LED_ON(36,15);
+      break;
+		case 107 ... 112:
+      break;
+		case 113:
+      LED_ON(52,15);
+      break;
+		case 114 ... 119:
+      break;
+		case 120:
+      LED_ON(53,15);
+      LED_OFF(46);
+      break;
+		case 121 ... 126:
+      break;
+		case 127:
+      LED_ON(54,15);
+      LED_OFF(30);
+      break;
+		case 128 ... 133:
+      break;
+		case 134:
+      LED_ON(55,15);
+      LED_OFF(29);
+      break;
+		case 135 ... 140:
+      break;
+		case 141:
+      LED_ON(59,15);
+      LED_OFF(13);
+      break;
+		case 142 ... 147:
+      break;
+		case 148:
+      LED_ON(7,15);
+      LED_OFF(12);
+      break;
+		case 149 ... 154:
+      break;
+		case 155:
+      LED_ON(47,15);
+      break;
+		case 156 ... 161:
+      break;
+		case 162:
+      LED_ON(31,15);
+      break;
+		case 163 ... 168:
+      break;
+		case 169:
+      LED_ON(15,15);
+      break;
+		case 170 ... 175:
+      break;
+		case 176:
+      LED_ON(11,15);
+      break;
+		case 177 ... 182:
+      break;
+		case 183:
+      LED_ON(5,15);
+      LED_OFF(46);
+      break;
+		case 184 ... 189:
+      break;
+		case 190:
+      LED_ON(6,15);
+      break;
+		case 191 ... 196:
+      break;
+		case 197:
+      LED_ON(50,15);
+      break;
+		case 198 ... 203:
+      break;
+		case 204:
+      LED_ON(1,15);
+      break;
+		case 205 ... 210:
+      break;
+		case 211:
+      LED_ON(2,15);
+      break;
+		case 212 ... 217:
+      break;
+		case 218:
+      LED_ON(18,15);
+      break;
+		case 219 ... 224:
+      break;
+		case 225:
+      LED_ON(34,15);
+      LED_OFF(8);
+      break;
+		case 226 ... 231:
+      break;
+		case 232:
+      LED_ON(15,15);
+      LED_OFF(4);
+      break;
+		case 233 ... 238:
+      break;
+		case 239:
+      LED_ON(5,15);
+      break;
+		case 240 ... 245:
+      break;
+	}
+}
+
 #endif
