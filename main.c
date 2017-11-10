@@ -30,7 +30,7 @@ pin1	pin2	pin3	pin4	pin5
 
 #define PIXEL_TIME 2048							//pixel max ON time in instruction cycles
 #define FRAME_TIME 28								//number of timer1 overflows per frame
-#define NUM_OF_ANIMATIONS 4					//number of animation sequences
+#define NUM_OF_ANIMATIONS 7					//number of animation sequences
 
 /************************* DECLARE GLOBAL VARIABLES  *************************/
 
@@ -183,16 +183,28 @@ int main (){
 		if (frameStep == 1){
 			switch(animationNum){
 				case 0:
-					LINE_RIDER(frameCounter%97);
+					if(frameCounter%5 == 0) SNAKE((frameCounter/5)%434);
 					break;
 				case 1:
 					if(frameCounter%20 == 0) FADE_TEST((frameCounter/20)%29);
 					break;
 				case 2:
-					if(frameCounter == 0) DRAW_X(0,15);
+					LINE_RIDER(frameCounter%133);
 					break;
 				case 3:
-					if(frameCounter%25 == 0) SHIFT_TEST((frameCounter/25)%30);
+					if(frameCounter%40 == 0) SHIFT_TEST((frameCounter/40)%13);
+					break;
+				case 4:
+					if(frameCounter%4 == 0) FIREWORKS((frameCounter/4)%151);
+					break;
+				case 5:
+					if(frameCounter%3 == 0) H_A_D_SHIFT((frameCounter/3)%113);
+					break;
+				case 6:
+					LIGHTNING(frameCounter%282);
+					break;
+				case 7:
+					if(frameCounter%90 == 0) SHAPES((frameCounter/90)%7);
 					break;
 				default:
 					animationNum = 0;
@@ -203,7 +215,7 @@ int main (){
 			if (frameCounter > currentAnimTime){
 				frameCounter = 0;
 				animationNum++;
-				if (animationNum > NUM_OF_ANIMATIONS){
+				if (animationNum >= NUM_OF_ANIMATIONS){
 					animationNum = 0;
 				}
 				ALL_OFF();
