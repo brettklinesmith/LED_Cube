@@ -1197,4 +1197,38 @@ void SNAKE(int frameNum){
 	}
 }
 
+		case 239:
+      LED_ON(0,15);
+      LED_ON(1,15);
+      LED_ON(2,15);
+      LED_ON(3,15);
+      LED_ON(4,15);
+      LED_ON(7,15);
+      LED_ON(8,15);
+      LED_ON(11,15);
+      LED_ON(12,15);
+      LED_ON(13,15);
+      LED_ON(14,15);
+      LED_ON(15,15);
+      LED_ON(16,15);
+      LED_ON(19,15);
+      LED_ON(28,15);
+      LED_ON(31,15);
+      LED_ON(32,15);
+      LED_ON(35,15);
+      LED_ON(44,15);
+      LED_ON(47,15);
+      LED_ON(48,15);
+      LED_ON(49,15);
+      LED_ON(50,15);
+      LED_ON(51,15);
+      LED_ON(55,15);
+      LED_ON(55,15);
+      LED_ON(59,15);
+      LED_ON(60,15);
+      LED_ON(61,15);
+      LED_ON(62,15);
+      LED_ON(63,15);
+      break;
+
 #endif
